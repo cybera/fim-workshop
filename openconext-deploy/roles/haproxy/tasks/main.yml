@@ -1,0 +1,12 @@
+---
+- include: multiple-instances.yml
+  when: haproxy_multi_instance is defined
+
+- include: single-instance.yml
+  when: haproxy_multi_instance is not defined
+
+- name: disable health checks for development envs
+  command: 'echo "disable health {{item.name}}" | socat /var/lib/haproxy/stats stdio'
+  with_items:
+    - "{{ haproxy_applications }}"
+  when: develop

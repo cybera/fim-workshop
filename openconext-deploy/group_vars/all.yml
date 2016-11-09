@@ -1,0 +1,22 @@
+---
+# The develop flag is used for development-specific tasks/roles and is set to true via --extra-vars
+# By default, these should not be run
+develop: false
+
+timezone: Europe/Amsterdam
+
+maven_repo: https://build.surfconext.nl/repository/public/releases
+maven_snapshot_repo: https://build.surfconext.nl/repository/public/snapshots
+
+ssl_key_dir: /etc/httpd/keys
+env_name: "{{ env_lang }}-{{ env }}"
+
+apache_user: apache
+
+error_subject_prefix: "[{{ ansible_hostname }}] "
+
+# DH-params
+tls_dh_param_path: /etc/pki/tls
+tls_dh_param_file: "{{ tls_dh_param_path }}/dh_params.pem"
+tls_dh_param_keysize: 2048
+

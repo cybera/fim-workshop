@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<Attributes xmlns="urn:mace:shibboleth:2.0:attribute-map" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <!-- ENGINEBLOCK ATTRIBUTE MAPS -->
+    <!-- Persistent ID Attribute map -->
+    <Attribute name="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified" id="name-id">
+      <AttributeDecoder xsi:type="NameIDAttributeDecoder" formatter="$Name" defaultQualifiers="true"/>
+    </Attribute>
+
+    <!-- UID attribute map -->
+    <Attribute name="urn:mace:dir:attribute-def:uid" nameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" id="uid" />
+    <!-- Mail attribute map -->
+    <Attribute name="urn:mace:dir:attribute-def:mail" nameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" id="Shib-InetOrgPerson-mail" />
+    <!-- schacHomeOrganizaiton attribute map -->
+    <Attribute name="urn:mace:terena.org:attribute-def:schacHomeOrganization" nameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" id="schacHomeOrganization" />
+    <!-- isMemberOf attribute map -->
+    <Attribute name="urn:mace:dir:attribute-def:isMemberOf" nameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" id="is-member-of" />
+    <!-- Display Name attribute map -->
+    <Attribute name="urn:mace:dir:attribute-def:displayName" nameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" id="displayName" />
+
+</Attributes>

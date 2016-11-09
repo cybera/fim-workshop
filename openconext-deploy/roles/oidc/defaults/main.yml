@@ -1,0 +1,6 @@
+oidc_group_url: org/openconext
+oidc_artifact_id: oidc-server
+# needed as default values
+oidc_snapshot_timestamp: ''
+oidc_local_war: ''
+deploy_name: oidc

@@ -1,0 +1,93 @@
+logging.config=file://{{ teams_dir }}/logback.xml
+server.port={{ springapp_tcpport }}
+server.tomcat.basedir={{ teams_dir }}/tomcat_work
+server.session.cookie.secure=true
+
+application.version= {{ teams_version }}
+
+datasource.teams.driver-class-name=com.mysql.jdbc.Driver
+datasource.teams.url=jdbc:mysql://{{ teams.db_host }}/{{ teams.db_name }}
+datasource.teams.username={{ teams.db_user }}
+datasource.teams.password={{ teams.db_password }}
+datasource.teams.validation-query=SELECT 1
+datasource.teams.testWhileIdle=true
+
+spring.jpa.properties.hibernate.naming-strategy=org.hibernate.cfg.ImprovedNamingStrategy
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLInnoDBDialect
+
+datasource.groupzy.driver-class-name=com.mysql.jdbc.Driver
+datasource.groupzy.url=jdbc:mysql://localhost/groupzy
+datasource.groupzy.username=groupzy
+datasource.groupzy.password=groupzy
+datasource.groupzy.validation-query=SELECT 1
+datasource.groupzy.testWhileIdle=true
+
+ldap.url=ldap://ldap.{{ base_domain }}:389
+ldap.base={{ ldap_suffix }}
+ldap.userDn={{ engine_ldap_bind_dn }}
+ldap.password={{ engine_ldap_password }}
+provision.users={{ teams_provision_users }}
+
+#the stem name to find all groups
+defaultStemName=nl:surfnet:diensten
+
+grouperPowerUser=GrouperSystem
+
+# App id displayed in the updates / invites section of the portal
+appId={{ instance_name }} Teams
+
+# The URL where the teams application is run so we can send out emails
+teamsURL=https://teams.{{ base_domain }}
+
+# SMTP server settings for notifications
+spring.mail.host={{ smtp_server }}
+spring.mail.port=25
+
+# Email address that is the sender of invitations/requests
+systemEmail={{ instance_name }} Teams <{{ noreply_email }}>
+
+# Maximum amount an invitation can be sent
+maxInvitations=5
+
+#Group name context
+group-name-context={{ teams.group_name_context }}
+
+####################################################################
+##
+## The following properties are used to enable/disable features
+##
+####################################################################
+
+# If set to false, the link to external group providers will not be shown
+displayExternalTeams=true
+# If set to false, the link from the list of external groups to the detail view with their members is hidden
+displayExternalTeamMembers=true
+# Shows/hides the button to add an external group to a SURFteam. If true, the button is visible
+displayAddExternalGroupToTeam=false
+
+####################################################################
+##
+## The following properties are the responsibility of the developers
+##
+####################################################################
+
+# Maximum upload size in forms (in bytes), ~2MB
+multipart.maxFileSize=2048000
+
+# actual end-point for accessing VOOT
+voot.serviceUrl=https://voot.{{ base_domain }}
+# oauth config for accessing voot.
+voot.accessTokenUri=https://authz.{{ base_domain }}/oauth/token
+voot.clientId=surf-teams
+voot.clientSecret={{ teams_authz_client_secret }}
+voot.scopes=groups
+
+server.session-timeout=3600
+
+endpoints.enabled=false
+endpoints.health.enabled=true
+endpoints.info.enabled=true
+
+spring.view.prefix: /WEB-INF/jsp/
+spring.view.suffix: .jsp
+spring.mvc.favicon.enabled=false

@@ -1,0 +1,69 @@
+---
+- name: Install mariadb server
+  yum: name={{ item }} state=present
+  with_items:
+     - mariadb-server.x86_64
+     - MySQL-python
+
+  tags: mysql
+
+- name: Start and enable mariadb
+  service: name=mariadb state=started enabled=yes
+  tags: mysql
+
+- name: Set mysql root password for all root accounts
+  mysql_user: name=root password={{ mysql_root_password }} priv=*.*:ALL,GRANT
+  tags: mysql
+
+- name: MySQL my.cnf
+  template: src=my.cnf.j2 dest=/root/.my.cnf mode=0600 owner=root group=root
+  tags: mysql
+
+- name: delete anonymous MySQL server user
+  mysql_user: user="" state="absent" login_user=root host={{ mysql_host }}  login_password={{ mysql_root_password }}
+  tags: mysql
+
+- name: delete anonymous MySQL server user for localhost
+  mysql_user: user="" state="absent" login_user=root host={{ mysql_host }} login_password={{ mysql_root_password }}
+  tags: mysql
+
+- name: delete test MySQL server user
+  mysql_user: user="{{ item }} " state="absent" login_user=root login_password={{ mysql_root_password }}
+  tags: mysql
+  with_items:
+    - test
+    - test_%
+
+- name: delete anonymous MySQL server user for localhost
+  mysql_user: user="" state="absent" login_user=root login_password={{ mysql_root_password }}
+  tags: mysql
+
+- name: remove the MySQL test database
+  mysql_db: db=test state=absent login_user=root login_password={{ mysql_root_password }}
+  tags: mysql
+
+- name: Create database
+  mysql_db: name={{ item }} state=present
+  with_items:
+    - "{{ databases.names }}"
+  tags: mysql
+
+- name: Create database user
+  mysql_user: name={{ item[0].name }} host={{ item[1] }} password={{ item[0].password }} priv={{ item[0].db_name }}.*:ALL state=present
+  with_nested:
+    - "{{ databases.users }}"
+    - "{{ database_clients }}"
+  tags: mysql
+
+
+- name: Create development database user
+  mysql_user: name={{ item.name}} host=% password={{ item.password }} priv=*.*:ALL state=present
+  with_items:
+    - "{{ databases.development_user|default([]) }}"
+  when: develop
+  tags: mysql
+
+- name: Allow external connections when in development
+  lineinfile: "dest=/etc/my.cnf.d/server.cnf insertafter='\\[mysqld-5.5\\]' state=present line='bind-address=0.0.0.0'"
+  when: develop
+  tags: mysql

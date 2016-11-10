@@ -1,6 +1,0 @@
----
-- name: systemctl daemon-reload
-  command: "systemctl daemon-reload"
-
-- name: restart attribute-mapper
-  service: name=attribute-mapper state=restarted

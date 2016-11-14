@@ -1,0 +1,4 @@
+- hosts: idp
+  roles:
+    - ssp_install
+    - idp_config

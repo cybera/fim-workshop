@@ -1,0 +1,47 @@
+ansible_user: ubuntu
+ssp_domain: "{{ inventory_hostname }}"
+
+# Higher php values for CAF / CAF-interfed metadata needed
+ssp_php_conf_mem_limit: 512M
+ssp_php_conf_max_exec_time: 60
+
+ssp_idp_secretsalt: notsosecretsalt 
+ssp_idp_admin_password: admin
+
+ssp_idp_storetype: memcache
+
+ssp_idp_technical_name: "Administrator"
+ssp_idp_technical_email: "invalid@example.com"
+ssp_idp_attr_consent: True
+ssp_cron_enable: True
+
+ssp_idp_openconext_sp_meta_url: https://engine.dev.myunified.ca/authentication/sp/metadata
+
+ssp_idp_host_maps:
+  - ip: 10.2.3.94
+    name: WIN-T9HL66BR301.ad.dev.cybera.ca
+
+ssp_idp_authsources:
+  - auth_name: dev-ad
+    hostname: WIN-T9HL66BR301.ad.dev.cybera.ca
+    enable_tls: True
+    search_base:
+      - 'CN=Users,DC=ad,DC=dev,DC=cybera,DC=ca'
+    username: 'srv_idp@ad.dev.cybera.ca'
+    password: ''
+
+
+ssp_idp_configs:
+  - domain: "{{ ssp_domain }}"
+    schac_home_org: cybera.ca
+    ssl_subj: '/CN={{ ssp_domain }}/O=Cybera/C=CA'
+    ssl_bits: 2048
+    ssl_days: 3652
+    auth_name: dev-ad
+    display_name: "{{ ssp_domain }}"
+    description: "{{ ssp_domain }}"
+    information_url: 'http://{{ ssp_domain}}/about/'
+    logo:
+      url: 'https://www.cybera.ca/assets/Cybera-Logos/cybera-main.jpg'
+      height: 33
+      width: 120

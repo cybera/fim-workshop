@@ -1,0 +1,9 @@
+- name: Create SP certs
+  command: "openssl req \
+            -newkey rsa:2048 \
+            -new -x509 \
+            -days 3652 \
+            -nodes \
+            -subj '/C=CA/ST=Denial/L=Springfield/O=Dis/CN={{ ssp_domain }}'
+            -out {{ ssp_dir }}/cert/saml.crt \
+            -keyout {{ ssp_dir }}/cert/saml.pem"

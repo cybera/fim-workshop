@@ -1,0 +1,137 @@
+- name: Ensure ldap tools installed
+  package: name=ldap-utils state=present
+  become: yes
+  tags: test_ad
+
+- name: Populate ldap.conf
+  template: src=ldap.conf.j2 dest=/etc/ldap/ldap.conf
+  become: yes
+  tags: config
+
+- name: Add mappings to /etc/hosts
+  blockinfile:
+    dest: /etc/hosts
+    block: |
+      {{item.ip}} {{item.name}}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{item.name}}"
+  with_items:
+      - "{{ ssp_idp_host_maps }}"
+  become: yes
+  tags: config
+
+- name: Get ldap certificates
+  shell: "openssl s_client -connect {{ item.hostname }}:636 -prexit < /dev/null 2> /dev/null|  openssl x509 -subject"
+  register: cert_cmd
+  always_run: yes
+  with_items:
+    - "{{ ssp_idp_authsources }}"
+  tags: config
+
+- name: Merge ssl certs from stdout
+  set_fact: ssl_certs="{{ cert_cmd.results | map(attribute='stdout') | join(" ") }}"
+  with_items:
+    - "{{ cert_cmd }}"
+  tags: config
+
+- name: Populate ldap fid certs
+  copy:
+    content="{{ ssl_certs }}"
+    dest=/etc/ssl/certs/fim-certs.pem
+  become: yes
+
+- name: Test AD Authentication
+  command: ldapwhoami -H '{% if item.enable_tls %}ldaps{% else %}ldap{% endif %}://{{ item.hostname }}' -D '{{ item.username }}' -w '{{ item.password }}'
+  changed_when: no
+  register: ldap_result
+  always_run: yes
+  failed_when: ldap_result.rc != 0
+  with_items: "{{ ssp_idp_authsources }}"
+  tags: test_ad
+
+- name: Create consent sqlite file
+  shell: "sqlite3 {{ ssp_dir }}/consent.sq3 '\
+    CREATE TABLE consent (\
+    consent_date TIMESTAMP NOT NULL,\
+    usage_date TIMESTAMP NOT NULL,\
+    hashed_user_id VARCHAR(80) NOT NULL,\
+    service_id VARCHAR(255) NOT NULL,\
+    attribute VARCHAR(80) NOT NULL,\
+    UNIQUE (hashed_user_id, service_id)\
+    );'"
+  args:
+    creates: "{{ ssp_dir }}/consent.sq3"
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+- name: Generate certs for each auth source
+  command: openssl req -newkey rsa:{{ item.ssl_bits }} -new -x509 -days {{ item.ssl_days }} -nodes -out {{ item.domain }}.crt -keyout {{ item.domain }}.pem -subj '{{ item.ssl_subj }}'
+  args:
+    chdir: "{{ ssp_dir }}/cert"
+    creates: "{{ item.domain }}.pem"
+  with_items: "{{ ssp_idp_configs }}"
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+- name: Populate SSP config
+  template: src=ssp_config.php.j2 dest="{{ ssp_dir }}/config/config.php"
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+  tags: config
+
+- name: Populate SSP authsources.php
+  template: src=authsources.php.j2 dest="{{ ssp_dir }}/config/authsources.php"
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+  tags: config
+
+- name: Populate idp metadata file
+  template:
+    src="{{ item }}.j2"
+    dest="{{ ssp_dir }}/metadata/{{ item }}"
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+  with_items:
+    - saml20-idp-hosted.php
+  tags: config
+
+- name: Copy logo
+  copy:
+    src="files/logo.png"
+    dest="{{ ssp_dir }}/modules/themeSURFnet/www/logo.png"
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+  when: ssp_theme_install
+
+- name: Setup Certbot
+  include: tasks/certbot.yml
+  become: yes
+
+- name: Setup SSP Apache
+  include: tasks/setup_apache.yml
+
+- name: Populate metadata refresh
+  template:
+    src=config-metarefresh.php.j2
+    dest="{{ ssp_dir }}/config/config-metarefresh.php"
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+  when: ssp_cron_enable
+  tags: config
+
+- name: Remove metadata refresh
+  file:
+    path="{{ ssp_dir }}/config/config-metarefresh.php"
+    state=absent
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+  when: not ssp_cron_enable
+  tags: config
+
+- name: Force SSP update
+  get_url: url='https://{{ ssp_domain }}/simplesaml/module.php/cron/cron.php?key=secret&tag=hourly' dest="/dev/null" force=yes
+  ignore_errors: yes
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+  when: ssp_cron_enable
+  tags:
+    - update_ssp

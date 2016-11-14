@@ -1,0 +1,157 @@
+<?php
+$config = array(
+    'baseurlpath' => 'simplesaml/',
+    'certdir' => 'cert/',
+    'loggingdir' => 'log/',
+    'datadir' => 'data/',
+    'tempdir' => '/tmp/simplesaml',
+    'debug' => false,
+    'showerrors' => true,
+    'errorreporting' => true,
+    'debug.validatexml' => false,
+    'auth.adminpassword' => '{{ ssp_idp_admin_password }}',
+    'admin.protectindexpage' => true,
+    'admin.protectmetadata' => false,
+    'secretsalt' => '{{ ssp_idp_secretsalt }}',
+
+    'technicalcontact_name' => '{{ ssp_idp_technical_name }}',
+    'technicalcontact_email' => '{{ ssp_idp_technical_email }}',
+
+    'timezone' => '{{ ssp_idp_timezone }}',
+
+    'logging.level' => SimpleSAML_Logger::NOTICE,
+    'logging.handler' => 'syslog',
+
+    'logging.facility' => defined('LOG_LOCAL5') ? constant('LOG_LOCAL5') : LOG_USER,
+
+    'logging.processname' => 'simplesamlphp',
+
+    'logging.logfile' => 'simplesamlphp.log',
+
+    'statistics.out' => array(// Log statistics to the normal log.
+        /*
+        array(
+            'class' => 'core:Log',
+            'level' => 'notice',
+        ),
+        */
+        // Log statistics to files in a directory. One file per day.
+        /*
+        array(
+            'class' => 'core:File',
+            'directory' => '/var/log/stats',
+        ),
+        */
+    ),
+
+
+
+    'database.dsn' => 'mysql:host=localhost;dbname=saml',
+
+    'database.username' => 'simplesamlphp',
+    'database.password' => 'secret',
+    'database.prefix' => '',
+    'database.persistent' => false,
+    'database.slaves' => array(
+        /*
+        array(
+            'dsn' => 'mysql:host=myslave;dbname=saml',
+            'username' => 'simplesamlphp',
+            'password' => 'secret',
+            'persistent' => false,
+        ),
+        */
+    ),
+
+
+    'enable.saml20-idp' => true,
+    'enable.shib13-idp' => false,
+    'enable.adfs-idp' => false,
+    'enable.wsfed-sp' => false,
+    'enable.authmemcookie' => false,
+
+
+    'session.duration' => 8 * (60 * 60), // 8 hours.
+    'session.datastore.timeout' => (4 * 60 * 60), // 4 hours
+    'session.state.timeout' => (60 * 60), // 1 hour
+    'session.cookie.name' => 'SimpleSAMLSessionID',
+    'session.cookie.lifetime' => 0,
+    'session.cookie.path' => '/',
+    'session.cookie.domain' => null,
+    'session.cookie.secure' => true,
+
+    'enable.http_post' => false,
+
+    'session.phpsession.cookiename' => null,
+    'session.phpsession.savepath' => null,
+    'session.phpsession.httponly' => true,
+    'session.authtoken.cookiename' => 'SimpleSAMLAuthToken',
+    'session.rememberme.enable' => false,
+    'session.rememberme.checked' => false,
+    'session.rememberme.lifetime' => (14 * 86400),
+
+    'language.available' => array(
+        'en', 'no', 'nn', 'se', 'da', 'de', 'sv', 'fi', 'es', 'fr', 'it', 'nl', 'lb', 'cs',
+        'sl', 'lt', 'hr', 'hu', 'pl', 'pt', 'pt-br', 'tr', 'ja', 'zh', 'zh-tw', 'ru', 'et',
+        'he', 'id', 'sr', 'lv', 'ro', 'eu'
+    ),
+    'language.rtl' => array('ar', 'dv', 'fa', 'ur', 'he'),
+    'language.default' => 'en',
+
+    'language.parameter.name' => 'language',
+    'language.parameter.setcookie' => true,
+
+    'language.cookie.name' => 'language',
+    'language.cookie.domain' => null,
+    'language.cookie.path' => '/',
+    'language.cookie.lifetime' => (60 * 60 * 24 * 900),
+
+    'attributes.extradictionary' => null,
+    'theme.use' => 'themeSURFnet:SURFnet',
+    'default-wsfed-idp' => 'urn:federation:pingfederate:localhost',
+    'idpdisco.enableremember' => true,
+    'idpdisco.rememberchecked' => true,
+    'idpdisco.validate' => true,
+    'idpdisco.extDiscoveryStorage' => null,
+    'idpdisco.layout' => 'dropdown',
+    'shib13.signresponse' => true,
+
+    'authproc.sp' => array(
+        90 => 'core:LanguageAdaptor',
+    ),
+
+
+    'metadata.sources' => array(
+        array('type' => 'flatfile'),
+        array('type' => 'serialize', 'directory' => 'metadata/metarefresh-openconext'),
+        array('type' => 'serialize', 'directory' => 'metadata/metarefresh-caf'),
+        array('type' => 'serialize', 'directory' => 'metadata/metarefresh-cafedugain'),
+    ),
+
+
+    'store.type'=> '{{ ssp_idp_storetype }}',
+
+    'store.sql.dsn'      => '{{ ssp_idp_storetype_sqldsn }}',
+    'store.sql.username' => null,
+    'store.sql.password' => null,
+    'store.sql.prefix' => 'SimpleSAMLphp',
+
+    'memcache_store.servers' => array(
+        array(
+            array('hostname' => 'localhost'),
+        ),
+    ),
+
+
+    'memcache_store.prefix'=> 'SimpleSAMLphp',
+    'memcache_store.expires' => 36 * (60 * 60), // 36 hours.
+
+    // Metadata signing handled at IdP level
+    'metadata.sign.enable' => false,
+    'metadata.sign.privatekey' => null,
+    'metadata.sign.privatekey_pass' => null,
+    'metadata.sign.certificate' => null,
+    'proxy' => null,
+    'trusted.url.domains' => array(),
+
+);

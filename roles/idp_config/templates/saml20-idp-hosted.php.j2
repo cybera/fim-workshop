@@ -1,0 +1,115 @@
+<?php
+{% for item in ssp_idp_configs %}
+$metadata['__DYNAMIC:{{ loop.index }}__'] = array(
+    'host' => '{{ item.domain }}',
+    'scope' => array('{{ item.schac_home_org }}'),
+    'auth' => '{{ item.auth_name }}',
+    'privatekey' => '{{ item.domain }}.pem',
+    'certificate' => '{{ item.domain }}.crt',
+    'https.certificate' => '{{ ssp_dir }}/cert/apache.pem',
+    'signature.algorithm' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+    'saml20.sendartifact' => TRUE,
+    'UIInfo' => array(
+     'DisplayName' => array(
+         'en' => '{{ item.display_name }}',
+         'fr' => '{{ item.display_name }}',
+      ),
+         'Description' => array(
+            'en' => '{{ item.description }}',
+            'fr' => '{{ item.description }}',
+         ),
+         {% if item.information_url %}
+         'InformationURL' => array(
+            'en' => '{{ item.information_url }}',
+            'fr' => '{{ item.information_url }}',
+         ),
+         {% endif %}
+         'Keywords' => array(
+            'en' => array('{{ item.display_name }}'),
+            'fr' => array('{{ item.display_name }}'),
+         ),
+         {% if item.logo %}
+         'Logo' => array(
+            array(
+              'url'    => '{{ item.logo.url }}',
+              'height' => {{ item.logo.height }},
+              'width'  => {{ item.logo.width }},
+            ),
+         ),                                                                                                                                     ),
+         {% endif %}
+         {% if item.registration_info is defined %}
+         'RegistrationInfo' => array(
+             'authority' => '{{ item.registration_info.authority }}',
+             'instant' => '{{ item.registration_info.instant }}',
+         ),
+         {% endif %}
+
+    // The URN attribute NameFormat for OID attributes.
+    'attributes.NameFormat' => 'urn:oasis:names:tc:SAML:2.0:attrname-format:uri',
+    'attributeencodings' => array(
+        'urn:oid:1.3.6.1.4.1.5923.1.1.1.10' => 'raw', /* eduPersonTargetedID with oid NameFormat is a raw XML value */
+    ),
+
+    'userid.attribute' => 'userPrincipalName',
+
+    'authproc' => array(
+        1 => array(
+            'class' => 'saml:TransientNameID',
+        ),
+        2 => array(
+            'class' => 'saml:PersistentNameID',
+            'attribute' => 'userPrincipalName',
+        ),
+        3 => 'saml:PersistentNameID2TargetedID',
+
+        10 => array(
+          'class' => 'core:AttributeAdd',
+               'schacHomeOrganization' => '{{ item.schac_home_org }}',
+        ),
+        12 => array(
+            'class' => 'core:AttributeMap',
+            'userPrincipalName' => 'eduPersonPrincipalName',
+            'sAMAccountName' => 'uid',
+            '%duplicate',
+        ),
+
+        // Adopts language from attribute to use in UI
+        30 => 'core:LanguageAdaptor',
+
+        50 => array(
+            'class' => 'core:AttributeLimit',
+            'default' => TRUE,
+            'eduPersonPrincipalName',
+            'schacHomeOrganization',
+            'displayName',
+            'mail',
+            'sn',
+            'givenName',
+            'eduPersonScopedAffiliation',
+            'eduPersonTargetedID',
+            'eduPersonAffiliation',
+        ),
+
+
+        {% if ssp_idp_attr_consent %}
+        90 => array(
+            'class' => 'consent:Consent',
+            'focus' => 'yes',
+            'checked' => TRUE,
+            'store' => array(
+                'consent:Database',
+                'dsn' => 'sqlite:{{ ssp_dir }}/consent.sq3',
+            ),
+        ),
+        {% endif %}
+        // Use OID attribute names.
+        91 => array(
+            'class' => 'core:AttributeMap',
+            'name2oid'
+        ),
+
+        // If language is set in Consent module it will be added as an attribute.
+        99 => 'core:LanguageAdaptor',
+     ), //authproc
+);
+{% endfor %}

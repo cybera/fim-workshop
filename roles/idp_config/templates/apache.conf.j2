@@ -1,0 +1,32 @@
+<VirtualHost *:80>
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
+  </IfModule>
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName {{ ssp_domain }}
+    DocumentRoot {{ ssp_dir }}
+
+    SetEnv SIMPLESAMLPHP_CONFIG_DIR {{ ssp_dir }}/config
+
+    Alias /simplesaml {{ ssp_dir }}/www
+#    RedirectMatch ^/$ https://%{HTTP_HOST}%/simplesaml
+
+    <Directory {{ ssp_dir }}>
+            Options FollowSymLinks
+            AllowOverride None
+            Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    SSLEngine on
+    SSLCertificateFile    /etc/letsencrypt/live/{{ ssp_domain }}/cert.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/{{ ssp_domain }}/privkey.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/{{ ssp_domain }}/fullchain.pem
+</VirtualHost>
+

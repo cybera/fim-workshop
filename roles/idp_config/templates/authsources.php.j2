@@ -1,0 +1,23 @@
+<?php
+
+$config = array(
+    'admin' => array(
+        'core:AdminPassword',
+    ),
+
+{% for item in ssp_idp_authsources %}
+'{{ item.auth_name }}' => array(
+    'ldap:LDAP',
+    'hostname' => '{% if item.enable_tls %}ldaps{% else %}ldap{% endif %}://{{ item.hostname }}',
+    'enable_tls' => {% if not item.enable_tls %}FALSE{% else %}TRUE{% endif %},
+    'attributes' => array('sAMAccountName','mail','userPrincipalName','displayName','givenName','sn'),
+
+    'search.enable' => TRUE,
+    'search.base' => array({% for sb in item.search_base %}'{{ sb }}', {% endfor %}),
+    'search.attributes' => array('samAccountName','userPrincipalName','mail'),
+    'search.username' => '{{ item.username }}',
+    'search.password' => '{{ item.password }}',
+    'search.filter' => {% if item.filter is not defined or item.filter is none %}NULL{% else %}'{{ item.filter }}'{% endif %},
+),
+{% endfor %}
+);

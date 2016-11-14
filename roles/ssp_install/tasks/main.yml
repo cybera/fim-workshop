@@ -1,0 +1,142 @@
+## Do things that require root
+- name: Ensure packages present
+  apt: name={{ item }} state=present update_cache=yes cache_valid_time=3600
+  with_items:
+    - apache2
+    - git
+    - memcached
+    - sqlite3
+    - libgcrypt11-dev
+    - zlib1g-dev
+    - libapache2-mod-php
+    - php-auth-sasl
+    - php-mcrypt
+    - php-memcache
+    - php-memcached
+    - php-mysql
+    - php-sqlite3
+    - php-ldap
+    - php-gd
+    - php-xml
+    - php7.0-xml
+    - acl
+  become: yes
+
+- name: Enable apache rewrite module
+  apache2_module:
+    state=present
+    name=rewrite
+  become: yes
+
+
+- name: Enable php mcrypt
+  command: phpenmod mcrypt
+  register: cmd_result
+  changed_when: False
+  become: yes
+
+## Change permissions on directories so can be lowered permissions
+
+- name: Update permissions for SSP Directories
+  file:
+    path="{{ item }}"
+    recurse=yes
+    state=directory
+    owner="{{ ssp_www_user }}"
+    group="{{ ssp_www_group }}"
+  with_items:
+    - "{{ ssp_tmp_dir }}"
+    - "{{ ssp_dir }}"
+  become: yes
+
+
+## Do as much non-root stuff as possible
+
+- name: Check for SSP cert
+  stat: path={{ ssp_dir }}/cert/saml.crt
+  register: ssp_crt_stat
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+- name: Check for SSP key
+  stat: path={{ ssp_dir }}/cert/saml.pem
+  register: ssp_key_stat
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+- name: Check if SimpleSAMLphp directory already exists
+  stat: path={{ ssp_dir }}/.installed
+  register: ssp_stat
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+- name: Install SimpleSAMLphp if not already
+  include: tasks/install_ssp.yml
+  when: ssp_stat.stat.exists is not defined or ssp_stat.stat.exists == False
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+- name: Install SimpleSAMLphp theme
+  git:
+    repo=https://github.com/SURFnet/simpleSAMLphp-SURFnet
+    dest="{{ ssp_dir }}/modules/themeSURFnet"
+    update=no
+  when: ssp_theme_install
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+- name: Ensure SSP metadata dir exists
+  file:
+    path="{{ ssp_dir }}/metadata"
+    state=directory
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+- name: Setup SSP certs
+  include: tasks/install_ssp_certs.yml
+  when: ssp_crt_stat.stat.exists == False or ssp_key_stat.stat.exists == False
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+- name: Setup SimpleSAMLphp Cron
+  include: tasks/setup_ssp_cron.yml
+  when: ssp_cron_enable is defined
+  become_user: "{{ ssp_www_user }}"
+  become: yes
+
+## Need root for services
+- name: Set php memory limit
+  ini_file: dest=/etc/php/7.0/apache2/php.ini
+            section=PHP
+            option=memory_limit
+            value={{ ssp_php_conf_mem_limit }}
+            backup=yes
+  become: yes
+  notify: reload apache
+
+- name: Set php.conf execution time
+  ini_file: dest=/etc/php/7.0/apache2/php.ini
+            section=PHP
+            option=max_execution_time
+            value={{ ssp_php_conf_max_exec_time }}
+            backup=yes
+  become: yes
+  notify: reload apache
+
+- name: Remove default Apache
+  file:
+    path=/etc/apache2/sites-enabled/000-default.conf
+    state=absent
+  become: yes
+  notify:
+    - reload apache
+
+- name: Ensure memcached started
+  service: name=memcached state=started enabled=yes
+  become: yes
+
+- name: Ensure apache started
+  service: name=apache2 state=started enabled=yes
+  become: yes
+
+

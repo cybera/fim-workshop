@@ -1,0 +1,34 @@
+<?php
+
+$config = array(
+  'sets' => array(
+    'openconext' => array(
+      'cron'          => array('hourly'),
+      'sources'       => array(
+         array(
+          'src' => '{{ ssp_idp_openconext_sp_meta_url }}',
+          'template' => array(
+              'tags'  => array('openconext'),
+              'attributes' => array(
+               'uid',
+               'eduPersonPrincipalName',
+               'schacHomeOrganization',
+               'displayName',
+               'mail',
+               'sn',
+               'givenName',
+               'eduPersonScopedAffiliation',
+               'eduPersonTargetedID',
+               'eduPersonAffiliation',
+              ),
+          ),
+        ),
+        ),
+        'expireAfter'           => 60*60*24*4, // Maximum 4 days cache time
+        'outputDir'     => 'metadata/metarefresh-openconext/',
+        'outputFormat' => 'serialize',
+
+        //'types' => array(),
+    ),
+  ),
+);

@@ -28,7 +28,7 @@ ssp_idp_authsources:
     search_base:
       - 'CN=Users,DC=ad,DC=dev,DC=cybera,DC=ca'
     username: 'srv_idp@ad.dev.cybera.ca'
-    password: ''
+    password: 'REPLACEME'
 
 
 ssp_idp_configs:

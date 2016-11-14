@@ -1,0 +1,57 @@
+- name: Setup simplesaml daily cron
+  cron:
+    name="simplesaml daily"
+    user="{{ ssp_www_user }}"
+    minute="2"
+    hour="0"
+    state=present
+    job="curl --silent 'https://{{ ssp_domain }}/simplesaml/module.php/cron/cron.php?key={{ ssp_refresh_key }}&tag=daily' > /dev/null 2>&1"
+  when: "{{ ssp_cron_enable }}"
+
+- name: Setup simplesaml hourly cron
+  cron:
+    name="simplesaml hourly"
+    user="{{ ssp_www_user }}"
+    minute="1"
+    state=present
+    job="curl --silent 'https://{{ ssp_domain }}/simplesaml/module.php/cron/cron.php?key={{ ssp_refresh_key }}&tag=hourly' > /dev/null 2>&1"
+  when: "{{ ssp_cron_enable }}"
+
+- name: Disable simplesaml daily cron
+  cron:
+    name="simplesaml daily"
+    user="{{ ssp_www_user }}"
+    minute="2"
+    hour="0"
+    state=absent
+    job="curl --silent 'https://{{ ssp_domain }}/simplesaml/module.php/cron/cron.php?key={{ ssp_refresh_key }}&tag=daily' > /dev/null 2>&1"
+  when: not ssp_cron_enable
+
+- name: Disable simplesaml hourly cron
+  cron:
+    name="simplesaml hourly"
+    user="{{ ssp_www_user }}"
+    minute="1"
+    state=absent
+    job="curl --silent 'https://{{ ssp_domain }}/simplesaml/module.php/cron/cron.php?key={{ ssp_refresh_key }}&tag=hourly' > /dev/null 2>&1"
+  when: not ssp_cron_enable
+
+- name: Setup simplesaml cron config
+  template: src=module_cron.php.j2 dest="{{ ssp_dir }}/config/module_cron.php"
+
+- name: Enable simplesaml cron module
+  command: "touch {{ ssp_dir }}/modules/cron/enable"
+  args:
+    creates: "{{ ssp_dir }}/modules/cron/enable"
+
+- name: Enable simplesaml metarefresh module
+  command: "touch {{ ssp_dir }}/modules/metarefresh/enable"
+  args:
+    creates: "{{ ssp_dir }}/modules/metarefresh/enable"
+  when: ssp_cron_enable
+
+- name: Disable simplesaml metarefresh module
+  file:
+    path="{{ ssp_dir }}/modules/metarefresh/enable"
+    state=absent
+  when: not ssp_cron_enable

@@ -1,0 +1,76 @@
+# Defaults for ssp_idp_config
+ssp_idp_technical_email: "na@example.org"
+ssp_idp_technical_name: "Administrator"
+
+# Timezone from http://php.net/manual/en/timezones.php
+ssp_idp_timezone: America/Edmonton
+
+ssp_idp_admin_password: admin
+ssp_idp_secretsalt: defaultsecretsalt
+ssp_idp_storetype: memcache
+
+ssp_idp_storetype_sqldsn: 'sqlite:/tmp/ssp.sq3'
+
+ssp_idp_openconext_sp_meta_url: https://openconext.example.com/authentication/sp/metadata
+ssp_idp_openconext_sp_assert_url: https://openconext.example.com/authentication/sp/consume-assertion
+
+# Prompt for attribute release consent
+ssp_idp_attr_consent: false
+
+# Used to map non-valid hostnames to valid IP
+# For SSL certificate verification
+ssp_idp_host_maps:
+  - ip: ad.example.com
+    name: ad.example.local
+
+# Sources to use for IdP configurations below
+# Note: enable_tls should ALWAYS be enabled unless for troubleshooting purposes
+
+ssp_idp_authsources:
+  - auth_name: example-ad
+    hostname: ad.example.com
+    enable_tls: False
+    search_base:
+      - 'CN=Users,DC=example,DC=com'
+    username: CN=User1,DC=example,DC=com
+    password: ThisIsNotAStrongPassword
+    filter: NULL
+
+  - auth_name: example-ad2
+    hostname: ad2.example.com
+    enable_tls: True
+    search_base:
+      - 'CN=Users,DC=example,DC=com'
+      - 'CN=ServiceAccounts,DC=example,DC=com'
+    username: user@ad.example.com
+    password: ThisIsNotAStrongPassword
+    filter: '(&(objectCategory=Person)(ObjectClass=User))'
+
+# IdP configurations. Limited to single auth source for now.
+ssp_idp_configs:
+  - domain: ssp.example.com
+    schac_home_org: example.com
+    ssl_subj: '/CN=ssp.example.com/O=Organization Name/C=CA'
+    ssl_bits: 2048
+    ssl_days: 3652
+    auth_name: example-ad
+    display_name: Example AD
+    description: This is an Example AD
+    information_url: http://example.com/info
+    logo:
+      url: http://logo.example.com
+      height: 51
+      width: 107
+    registration_info:
+      authority: 'http://www.canarie.ca'
+      instant: '2014-06-11T08:00:00Z'
+
+
+  - domain: ssp2.example.com
+    schac_home_org: example.com
+    ssl_subj: '/CN=ssp2.example.com/O=Organization Name/C=CA'
+    ssl_bits: 2048
+    ssl_days: 3652
+    auth_name: example-ad2
+    display_name: Example AD2
+    description: This is an Example AD2

@@ -1,0 +1,18 @@
+ssp_php_conf_mem_limit: 128M
+ssp_php_conf_max_exec_time: 30
+
+ssp_ver: 1.14.8
+ssp_sha256: fc13d3b4cd29445124daeefd382d41643e64fa8ab37af31eb24c5d9e1c1aa92b 
+ssp_url: https://github.com/simplesamlphp/simplesamlphp/releases/download/v{{ ssp_ver }}/simplesamlphp-{{ ssp_ver }}.tar.gz
+
+ssp_domain: localhost.local
+ssp_dir: /var/www/simplesamlphp-{{ ssp_ver }}
+ssp_tmp_dir: /tmp/ssp
+ssp_www_user: www-data
+ssp_www_group: www-data
+
+ssp_cron_enable: False
+ssp_refresh_key: secret
+
+ssp_theme_install: True
+

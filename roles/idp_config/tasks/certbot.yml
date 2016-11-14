@@ -1,0 +1,40 @@
+- name: Copy certbot auto
+  copy:
+    src=files/certbot-auto
+    dest=/root/certbot-auto
+    mode=0744
+
+- name: Run certbot-auto dependencies
+  command: /root/certbot-auto --os-packages-only -n -q
+  register: cb_reg
+  changed_when: cb_reg.rc != 0
+
+- name: Make sure webroot certbot directory exists
+  file: path={{ ssp_dir }} state=directory
+
+- name: Copy apache crt to SSP dir if needed
+  copy:
+    remote_src=true
+    src="/etc/letsencrypt/live/{{ ssp_domain }}/cert.pem"
+    dest="{{ ssp_dir }}/cert/apache.pem"
+  ignore_errors: yes
+
+- name: Create certbot certs if needed
+  command: /root/certbot-auto certonly \
+          --standalone \
+          --agree-tos \
+          --email {{ ssp_idp_technical_email }} \
+          --keep-until-expiring \
+          --quiet \
+          --expand \
+          -n \
+          -d {{ ssp_domain }} {% for i in ssp_idp_configs %} -d {{ i.domain }} {% endfor %} \
+          --pre-hook "service apache2 stop" --post-hook "service apache2 start; cp /etc/letsencrypt/live/{{ ssp_domain }}/cert.pem {{ ssp_dir }}/cert/apache.pem" \
+          --webroot-path={{ ssp_dir }}
+
+- name: Setup certbot crontab if needed
+  cron: name="Autorenew certbot"
+        minute="8" hour="0"
+        job="/root/certbot-auto renew --quiet --pre-hook 'service apache2 stop' --post-hook 'service apache2 start; cp /etc/letsencrypt/live/{{ ssp_domain }}/cert.pem {{ ssp_dir }}/cert/apache.pem'"
+        cron_file=certbot
+        user="root"

@@ -1,0 +1,27 @@
+- name: Enable Apache modules
+  apache2_module:
+    name={{ item }}
+    state=present
+  with_items:
+    - ssl
+    - headers
+    - rewrite
+  become: yes
+  notify:
+    - restart apache
+
+- name: Setup SSP Apache
+  template:
+    src=templates/apache.conf.j2
+    dest=/etc/apache2/sites-enabled/ssp.conf
+  become: yes
+  notify:
+    - reload apache
+  tags: config
+
+- name: Populate Apache ssl config
+  template: src=apache-ssl.conf.j2 dest=/etc/apache2/mods-enabled/ssl.conf
+  become: yes
+  notify:
+    - reload apache
+  tags: config

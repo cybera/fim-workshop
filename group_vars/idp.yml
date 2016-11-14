@@ -33,7 +33,7 @@ ssp_idp_authsources:
 
 ssp_idp_configs:
   - domain: "{{ ssp_domain }}"
-    schac_home_org: cybera.ca
+    schac_home_org: dev.cybera.ca
     ssl_subj: '/CN={{ ssp_domain }}/O=Cybera/C=CA'
     ssl_bits: 2048
     ssl_days: 3652

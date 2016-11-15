@@ -2,6 +2,12 @@
 
 ## Pre-config work
 
+### Create instances
+```
+cd terraform
+terraform apply
+```
+
 ### Get DNS entries for instances
 ```
 nova show fim-workshop-idp |grep dns

@@ -22,3 +22,8 @@ vi group_vars/idp.yml
 ```
 ansible-playbook -i inventory setup_idp.yml
 ```
+
+## Test metadata
+```
+curl https://<idp_url>/simplesaml/saml2/idp/metadata.php
+```

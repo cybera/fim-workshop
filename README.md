@@ -1,9 +1,15 @@
-# Setup IdP
+# Setting up an IdP (SimpleSAMLphp) and SP (DokuWiki)
 
-## Pre-config work
+## Prerequisites for this workshop
+
+- Ansible: `pip install ansible`
+- OpenStack Nova: `pip install python-novaclient`
+- Terraform: https://www.terraform.io/
+- Openstack openrc.sh file 
 
 ### Create instances
 ```
+source ~/openrc.sh
 terraform apply
 ```
 

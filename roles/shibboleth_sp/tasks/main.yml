@@ -15,6 +15,7 @@
   template: src={{ item }}.j2 dest={{ shibsp_conf_dir }}/{{ item }}
   with_items:
     - shibboleth2.xml
+    - attribute-map.xml
   notify:
     - restart shibd
 

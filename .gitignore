@@ -1,2 +1,4 @@
 *.retry
 inventory
+*.tfstate
+*.tfstate.backup

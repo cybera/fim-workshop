@@ -28,9 +28,10 @@ vi group_vars/idp.yml
 ```
 
 
-## Run playbook
+## Run playbooks
 ```
 ansible-playbook -i inventory setup_idp.yml
+ansible-playbook -i inventory setup_dokuwiki.yml
 ```
 
 ## Test metadata

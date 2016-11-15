@@ -36,5 +36,6 @@ ansible-playbook -i inventory setup_dokuwiki.yml
 
 ## Test metadata
 ```
-curl https://<idp_url>/simplesaml/saml2/idp/metadata.php
+curl https://<idp_dns>/simplesaml/saml2/idp/metadata.php
+curl https://<dokuwiki_dns>/Shibboleth.sso/Metadata
 ```

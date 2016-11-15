@@ -4,7 +4,6 @@
 
 ### Create instances
 ```
-cd terraform
 terraform apply
 ```
 

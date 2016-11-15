@@ -9,6 +9,16 @@
   register: cb_reg
   changed_when: cb_reg.rc != 0
 
+- name: Run certbot-auto for virtual environment (needed to patch python libs)
+  command: /root/certbot-auto certonly --standalone --agree-tos --dry-run -n
+  ignore_errors: yes
+
+- name: Patch certbot with ipv6 patch
+  patch:
+    src=files/certbot_ipv6.patch
+    basedir=/root/.local/share/letsencrypt/lib/python2.7/site-packages/acme
+    strip=3
+
 - name: Make sure webroot certbot directory exists
   file: path={{ ssp_dir }} state=directory
 

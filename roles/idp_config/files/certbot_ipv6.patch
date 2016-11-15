@@ -1,0 +1,229 @@
+From 1921e2e0ae32a01b809ef563354c58728bc4e973 Mon Sep 17 00:00:00 2001
+From: Jay Faulkner <jay@jvf.cc>
+Date: Mon, 24 Oct 2016 14:30:57 -0700
+Subject: [PATCH] Add IPv6 support to ACME standalone mode
+
+Added support for using IPv6 sockets if possible. As part of this,
+I also had to fix crypto_util.probe_sni() to use ('', 0) as the
+default source address, instructing python to use the system default
+source. The previous value ('0', 0) was interpreted as the IPv4 address
+0.0.0.0.
+
+Strategy for detecting IPv6 support: check socket.has_ipv6 to see if
+python was compiled with IPv6 support. If it was, attempt to bind to the
+port we are trying to standup a server on on IPv7 localhost. If it works,
+IPv6 is enabled.
+
+Closes #1466
+---
+ acme/acme/crypto_util.py     |  2 +-
+ acme/acme/standalone.py      | 37 ++++++++++++++++++++++++++
+ acme/acme/standalone_test.py | 63 +++++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 94 insertions(+), 8 deletions(-)
+
+diff --git a/acme/acme/crypto_util.py b/acme/acme/crypto_util.py
+index 2b21334..1b620de 100644
+--- a/acme/acme/crypto_util.py
++++ b/acme/acme/crypto_util.py
+@@ -103,7 +103,7 @@ def accept(self):  # pylint: disable=missing-docstring
+ 
+ 
+ def probe_sni(name, host, port=443, timeout=300,
+-              method=_DEFAULT_TLSSNI01_SSL_METHOD, source_address=('0', 0)):
++              method=_DEFAULT_TLSSNI01_SSL_METHOD, source_address=('', 0)):
+     """Probe SNI server for SSL certificate.
+ 
+     :param bytes name: Byte string to send as the server name in the
+diff --git a/acme/acme/standalone.py b/acme/acme/standalone.py
+index 02cc2da..8a6a38b 100644
+--- a/acme/acme/standalone.py
++++ b/acme/acme/standalone.py
+@@ -4,6 +4,7 @@
+ import functools
+ import logging
+ import os
++import socket
+ import sys
+ 
+ from six.moves import BaseHTTPServer  # pylint: disable=import-error
+@@ -22,10 +23,41 @@
+ # pylint: disable=too-few-public-methods,no-init
+ 
+ 
++def ipv6_enabled(port):
++    """Method to see if IPv6 is functional.
++
++    This method only verifies IPv6 is enabled in underlying OS; this method
++    makes nor attempts no claims that the IPv6 internet is reachable.
++
++    :param port: Port to attempt bogus IPv6 connection
++    :returns: bool indicating if IPv6 is enabled in underlying system
++    """
++    if not socket.has_ipv6:  # pragma: no cover
++        # Python compiled without IPv6 support
++        return False
++
++    try:
++        testsock = socket.socket(socket.AF_INET6,
++                                 socket.SOCK_STREAM,
++                                 socket.IPPROTO_IP)
++        testsock.bind(('::1', port))
++        testsock.close()
++    except socket.error:
++        return False
++
++    # We were able to bind to an IPv6 address.
++    return True
++
++
+ class TLSServer(socketserver.TCPServer):
+     """Generic TLS Server."""
+ 
+     def __init__(self, *args, **kwargs):
++        if ipv6_enabled(args[0][1]):
++            self.address_family = socket.AF_INET6
++        else:
++            self.address_family = socket.AF_INET
++
+         self.certs = kwargs.pop("certs", {})
+         self.method = kwargs.pop(
+             # pylint: disable=protected-access
+@@ -74,6 +106,11 @@ class HTTP01Server(BaseHTTPServer.HTTPServer, ACMEServerMixin):
+     """HTTP01 Server."""
+ 
+     def __init__(self, server_address, resources):
++        if ipv6_enabled(server_address[1]):
++            self.address_family = socket.AF_INET6
++        else:
++            self.address_family = socket.AF_INET
++
+         BaseHTTPServer.HTTPServer.__init__(
+             self, server_address, HTTP01RequestHandler.partial_init(
+                 simple_http_resources=resources))
+diff --git a/acme/acme/standalone_test.py b/acme/acme/standalone_test.py
+index 85cd9d1..bdb3eec 100644
+--- a/acme/acme/standalone_test.py
++++ b/acme/acme/standalone_test.py
+@@ -1,6 +1,8 @@
+ """Tests for acme.standalone."""
++import mock
+ import os
+ import shutil
++import socket
+ import threading
+ import tempfile
+ import time
+@@ -15,17 +17,44 @@
+ from acme import crypto_util
+ from acme import errors
+ from acme import jose
++from acme import standalone
+ from acme import test_util
+ 
+ 
++class IPv6EnabledTest(unittest.TestCase):
++    """Tests for acme.standalone.ipv6_enabled."""
++
++    @mock.patch.object(socket, 'socket')
++    def test_has_ipv6(self, socket_mock):
++        socket_mock.return_value = mock.Mock()
++        self.assertTrue(standalone.ipv6_enabled(12))
++
++    @mock.patch.object(socket, 'socket')
++    def test_cannot_bind_ipv6(self, socket_mock):
++        socket_mock.side_effect = socket.error
++        self.assertFalse(standalone.ipv6_enabled(12))
++
++
+ class TLSServerTest(unittest.TestCase):
+     """Tests for acme.standalone.TLSServer."""
+ 
+-    def test_bind(self):  # pylint: disable=no-self-use
++    @mock.patch.object(standalone, 'ipv6_enabled')
++    def test_bind_has_ipv6(self, mock_ipv6):
++        mock_ipv6.return_value = True
++        from acme.standalone import TLSServer
++        server = TLSServer(
++            ('', 0), socketserver.BaseRequestHandler, bind_and_activate=True)
++        server.server_close()  # pylint: disable=no-member
++        self.assertEqual(server.address_family, socket.AF_INET6)
++
++    @mock.patch.object(standalone, 'ipv6_enabled')
++    def test_bind_no_ipv6(self, mock_ipv6):
++        mock_ipv6.return_value = False
+         from acme.standalone import TLSServer
+         server = TLSServer(
+             ('', 0), socketserver.BaseRequestHandler, bind_and_activate=True)
+         server.server_close()  # pylint: disable=no-member
++        self.assertEqual(server.address_family, socket.AF_INET)
+ 
+ 
+ class TLSSNI01ServerTest(unittest.TestCase):
+@@ -62,31 +91,49 @@ def setUp(self):
+             test_util.load_vector('rsa1024_key.pem'))
+         self.resources = set()
+ 
+-        from acme.standalone import HTTP01Server
+-        self.server = HTTP01Server(('', 0), resources=self.resources)
++    def _setup_server(self, ipv6=True):
++        # Run tests with IPv6 enabled by default, but allow toggling off to
++        # test fallback capability.
++        with mock.patch.object(standalone, 'ipv6_enabled', return_value=ipv6):
++            from acme.standalone import HTTP01Server
++            self.server = HTTP01Server(('', 0), resources=self.resources)  # pylint: disable=attribute-defined-outside-init
+ 
+-        # pylint: disable=no-member
+-        self.port = self.server.socket.getsockname()[1]
+-        self.thread = threading.Thread(target=self.server.serve_forever)
+-        self.thread.start()
++            # pylint: disable=no-member
++            self.port = self.server.socket.getsockname()[1]  # pylint: disable=attribute-defined-outside-init
++            self.thread = threading.Thread(target=self.server.serve_forever)  # pylint: disable=attribute-defined-outside-init
++            self.thread.start()
+ 
+     def tearDown(self):
+         self.server.shutdown()  # pylint: disable=no-member
+         self.thread.join()
+ 
+     def test_index(self):
++        self._setup_server()
++        response = requests.get(
++            'http://localhost:{0}'.format(self.port), verify=False)
++        self.assertEqual(
++            response.text, 'ACME client standalone challenge solver')
++        self.assertTrue(response.ok)
++        self.assertEqual(self.server.address_family, socket.AF_INET6)
++
++    def test_index_no_ipv6(self):
++        self._setup_server(ipv6=False)
+         response = requests.get(
+             'http://localhost:{0}'.format(self.port), verify=False)
+         self.assertEqual(
+             response.text, 'ACME client standalone challenge solver')
+         self.assertTrue(response.ok)
++        self.assertEqual(self.server.address_family, socket.AF_INET)
+ 
+     def test_404(self):
++        self._setup_server()
+         response = requests.get(
+             'http://localhost:{0}/foo'.format(self.port), verify=False)
+         self.assertEqual(response.status_code, http_client.NOT_FOUND)
++        self.assertEqual(self.server.address_family, socket.AF_INET6)
+ 
+     def _test_http01(self, add):
++        self._setup_server()
+         chall = challenges.HTTP01(token=(b'x' * 16))
+         response, validation = chall.response_and_validation(self.account_key)
+ 
+@@ -101,9 +148,11 @@ def _test_http01(self, add):
+ 
+     def test_http01_found(self):
+         self.assertTrue(self._test_http01(add=True))
++        self.assertEqual(self.server.address_family, socket.AF_INET6)
+ 
+     def test_http01_not_found(self):
+         self.assertFalse(self._test_http01(add=False))
++        self.assertEqual(self.server.address_family, socket.AF_INET6)
+ 
+ 
+ class TestSimpleTLSSNI01Server(unittest.TestCase):

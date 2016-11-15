@@ -1,10 +1,23 @@
-- name: Download certbot auto
-  get_url: url=https://dl.eff.org/certbot-auto dest=/root/certbot-auto mode=0744
+- name: Copy certbot auto
+  copy:
+    src=files/certbot-auto
+    dest=/root/certbot-auto
+    mode=0744
 
 - name: Run certbot-auto dependencies
   command: /root/certbot-auto --os-packages-only -n -q
   register: cb_reg
   changed_when: cb_reg.rc != 0
+
+- name: Run certbot-auto for virtual environment (needed to patch python libs)
+  command: /root/certbot-auto certonly --standalone --agree-tos --dry-run -n
+  ignore_errors: yes
+
+- name: Patch certbot with ipv6 patch
+  patch:
+    src=files/certbot_ipv6.patch
+    basedir=/root/.local/share/letsencrypt/lib/python2.7/site-packages/acme
+    strip=3
 
 - name: Make sure webroot certbot directory exists
   file: path={{ dokuwiki_dir }} state=directory

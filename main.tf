@@ -63,22 +63,13 @@ resource "openstack_compute_secgroup_v2" "workshop" {
   }
 }
 
-resource "openstack_compute_floatingip_v2" "idp" {
-  pool = "nova"
-}
-
 resource "openstack_compute_instance_v2" "idp" {
   name = "fim-workshop-idp"
   image_name = "Ubuntu 16.04"
   flavor_name = "m1.medium"
   key_pair = "${openstack_compute_keypair_v2.workshop.name}"
   security_groups = ["${openstack_compute_secgroup_v2.workshop.name}"]
-  floating_ip = "${openstack_compute_floatingip_v2.idp.address}"
   user_data = "#cloud-config\nfqdn: idp.example.com\nhostname: idp.example.com"
-}
-
-resource "openstack_compute_floatingip_v2" "dokuwiki" {
-  pool = "nova"
 }
 
 resource "openstack_compute_instance_v2" "dokuwiki" {
@@ -87,7 +78,6 @@ resource "openstack_compute_instance_v2" "dokuwiki" {
   flavor_name = "m1.medium"
   key_pair = "${openstack_compute_keypair_v2.workshop.name}"
   security_groups = ["${openstack_compute_secgroup_v2.workshop.name}"]
-  floating_ip = "${openstack_compute_floatingip_v2.dokuwiki.address}"
   user_data = "#cloud-config\nfqdn: dokuwiki.example.com\nhostname: dokuwiki.example.com"
 }
 

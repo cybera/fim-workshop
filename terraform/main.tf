@@ -1,11 +1,11 @@
-resource "openstack_compute_keypair_v2" "idp" {
-  name = "fim-workshop-idp"
+resource "openstack_compute_keypair_v2" "workshop" {
+  name = "fim-workshop"
   public_key = "${file("~/.ssh/id_rsa.pub")}"
 }
 
-resource "openstack_compute_secgroup_v2" "idp" {
-  name = "fim-workshop-idp"
-  description = "Rules for idp"
+resource "openstack_compute_secgroup_v2" "workshop" {
+  name = "fim-workshop"
+  description = "Rules for workshop"
 
   rule {
     ip_protocol = "icmp"
@@ -71,17 +71,39 @@ resource "openstack_compute_instance_v2" "idp" {
   name = "fim-workshop-idp"
   image_name = "Ubuntu 16.04"
   flavor_name = "m1.medium"
-  key_pair = "${openstack_compute_keypair_v2.idp.name}"
-  security_groups = ["${openstack_compute_secgroup_v2.idp.name}"]
+  key_pair = "${openstack_compute_keypair_v2.workshop.name}"
+  security_groups = ["${openstack_compute_secgroup_v2.workshop.name}"]
   floating_ip = "${openstack_compute_floatingip_v2.idp.address}"
   user_data = "#cloud-config\nfqdn: idp.example.com\nhostname: idp.example.com"
+}
+
+resource "openstack_compute_floatingip_v2" "dokuwiki" {
+  pool = "nova"
+}
+
+resource "openstack_compute_instance_v2" "dokuwiki" {
+  name = "fim-workshop-dokuwiki"
+  image_name = "Ubuntu 14.04"
+  flavor_name = "m1.medium"
+  key_pair = "${openstack_compute_keypair_v2.workshop.name}"
+  security_groups = ["${openstack_compute_secgroup_v2.workshop.name}"]
+  floating_ip = "${openstack_compute_floatingip_v2.dokuwiki.address}"
+  user_data = "#cloud-config\nfqdn: dokuwiki.example.com\nhostname: dokuwiki.example.com"
 }
 
 resource "null_resource" "idp" {
   connection {
     user = "ubuntu"
     host = "${element(openstack_compute_instance_v2.idp.*.access_ip_v6, count.index)}"
-    private_key = "key/id_rsa"
+    private_key = "~/.ssh/id_rsa"
   }
-
 }
+
+resource "null_resource" "dokuwiki" {
+  connection {
+    user = "ubuntu"
+    host = "${element(openstack_compute_instance_v2.idp.*.access_ip_v6, count.index)}"
+    private_key = "~/.ssh/id_rsa"
+  }
+}
+

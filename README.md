@@ -15,7 +15,11 @@ nova show fim-workshop-dokuwiki |grep dns
 ```
 ### Update inventory file
 ```
-vi inventory
+[idp]
+<idp_dns>.yeg.cybera.ca
+
+[dokuwiki]
+<dokuwiki_dns>.yeg.cybera.ca
 ```
 
 ### Update variable file

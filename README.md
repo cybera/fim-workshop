@@ -9,7 +9,8 @@
 
 ### Create instances
 ```
-source ~/openrc.sh
+source openrc.sh
+<enter OpenStack username/password when prompted>
 terraform apply
 ```
 

@@ -2,7 +2,7 @@ ansible_user: ubuntu
 ## Dokuwiki Role vars
 dokuwiki_title: "Dokuwiki Federated"
 dokuwiki_domain: "{{ inventory_hostname }}"
-dokuwiki_email: andrew.klaus@cybera.ca
+dokuwiki_email: invalid@example.com
 
 ## Shibboleth SP Role vars
 shibsp_conf_dir: /etc/shibboleth

@@ -1,0 +1,13 @@
+---
+# defaults file for shibboleth_sp
+#
+shibsp_contact_email: andrew.klaus@cybera.ca
+shibsp_app_entityid: https://app.dev.cybera.ca
+
+shibsp_metadata_url: "/Metadata"
+shibsp_status_acl: "127.0.0.1 ::1"
+
+shibsp_idp_entityid: https://engine.openconext.dev.cybera.ca/authentication/idp/metadata
+shibsp_idp_metadata_url: https://engine.openconext.dev.cybera.ca/authentication/idp/metadata
+shibsp_idp_metadata_reloadinterval: 7200  # 2 hours
+shibsp_conf_dir: /etc/shibboleth

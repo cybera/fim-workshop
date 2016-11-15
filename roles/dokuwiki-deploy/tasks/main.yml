@@ -1,0 +1,64 @@
+---
+# tasks file for dokuwiki-deploy
+
+- name: Ensure packages present
+  apt: name={{ item }} state=present update_cache=yes cache_valid_time=3600
+  with_items:
+    - git
+    - openssl
+    - libapache2-mod-php5
+    - apache2
+  become: yes
+
+# Dokuwiki setup
+#
+- name: Check if dokuwiki directory already exists
+  stat: path={{ dokuwiki_dir }}
+  register: dokuwiki_stat
+
+- name: Install Dokuwiki if needed
+  include: tasks/install_dokuwiki.yml
+  when: dokuwiki_stat.stat.isdir is not defined
+
+- name: Setup dokuwiki config
+  template: src=local.php.j2 dest={{ dokuwiki_dir }}/conf/local.php
+
+- name: Setup dokuwiki acl.php
+  template: src=acl.auth.php.j2 dest={{ dokuwiki_dir }}/conf/acl.auth.php
+
+- name: Check if authshibboleth plugin exists
+  stat: path={{ dokuwiki_dir }}/lib/plugins/authshibboleth
+  register: authshib_stat
+
+- name: Install AuthShibboleth plugin if needed
+  include: tasks/install_authshibboleth.yml
+  when: authshib_stat.stat.isdir is not defined
+
+- name: Change dokuwiki permission
+  file: path={{ dokuwiki_dir }} owner=www-data group=www-data recurse=yes
+
+- name: Remove dokuwiki install.php
+  file: path={{ dokuwiki_dir }}/install.php state=absent
+
+- name: Enable Apache ssl
+  apache2_module: name={{ item }} state=present
+  with_items:
+    - ssl
+    - headers
+    - rewrite
+  notify:
+    - restart apache2
+
+- name: Populate Apache config
+  template: src=apache.conf.j2 dest=/etc/apache2/sites-enabled/000-default.conf
+  notify:
+    - reload apache2
+
+
+- name: Populate Apache ssl config
+  template: src=apache-ssl.conf.j2 dest=/etc/apache2/mods-enabled/ssl.conf
+  notify:
+    - reload apache2
+
+- name: Include certbot tasks
+  include: tasks/certbot.yml

@@ -1,0 +1,11 @@
+- name: Download dokuwiki tarball
+  get_url: url="{{ dokuwiki_url }}" dest=/tmp/
+
+- name: Extract dokuwiki
+  unarchive: src=/tmp/dokuwiki-stable.tgz dest=/tmp/ copy=no
+
+- name: Create dokuwiki directory
+  file: path={{ dokuwiki_dir }} state=directory mode=0755
+
+- name: Move extracted directory
+  shell: mv /tmp/dokuwiki-*/* "{{ dokuwiki_dir }}"

@@ -1,0 +1,15 @@
+- name: Check if cert directory exists
+  stat: path={{ crtfile | dirname }}
+  register: crt_dir
+
+- name: Create cert directory if does not exist
+  file: path={{ crtfile | dirname }} state=directory mode=0755
+  when: crt_dir.stat.isdir is not defined
+
+- name: Check if key directory exists
+  stat: path={{ keyfile | dirname }}
+  register: key_dir
+
+- name: Create key directory if does not exist
+  file: path={{ keyfile | dirname }} state=directory mode=0755
+  when: key_dir.stat.isdir is not defined

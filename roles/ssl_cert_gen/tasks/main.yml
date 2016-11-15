@@ -1,0 +1,31 @@
+- name: Ensure openssl installed
+  package: name=openssl state=present
+
+- name: Check if ssl cert exists
+  stat: path={{ crtfile }}
+  register: crt_stat
+
+- name: Check if ssl key exists
+  stat: path={{ keyfile }}
+  register: key_stat
+
+- name: Create needed keypair directories
+  include: tasks/create_keypair_dirs.yml
+
+- name: If key exists then create certificate from keyfile (if cert doesn't already exist) 
+  include: tasks/create_crt_from_keyfile.yml
+  when: crt_stat.stat.exists == False and key_stat.stat.exists == True 
+
+- name: If key exists then renew certificate (if enabled and expired)
+  include: tasks/renew_crt_from_keyfile.yml
+  when: key_stat.stat.exists == True
+        and crt_stat.stat.exists == True
+        and crt_renew == True
+
+- name: If key does not exist, create keypair
+  include: tasks/create_keypair.yml
+  when: key_stat.stat.exists is not defined or key_stat.stat.exists == False
+
+- name: Ensure key file owner matches
+  file: path={{ keyfile }} owner={{ key_user }} group={{ key_group }} mode={{ key_mode }}
+

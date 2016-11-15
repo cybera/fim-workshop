@@ -1,0 +1,6 @@
+---
+# vars file for shibboleth_sp
+
+# ssl generation vars
+shibboleth_ssl_crt: "{{ shib_conf_dir }}/shib.crt"
+shibboleth_ssl_key: "{{ shib_conf_dir }}/shib.key"

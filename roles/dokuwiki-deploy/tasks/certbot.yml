@@ -1,0 +1,30 @@
+- name: Download certbot auto
+  get_url: url=https://dl.eff.org/certbot-auto dest=/root/certbot-auto mode=0744
+
+- name: Run certbot-auto dependencies
+  command: /root/certbot-auto --os-packages-only -n -q
+  register: cb_reg
+  changed_when: cb_reg.rc != 0
+
+- name: Make sure webroot certbot directory exists
+  file: path={{ dokuwiki_dir }} state=directory
+
+- name: Create certbot certs if needed
+  command: /root/certbot-auto certonly \
+          --standalone \
+          --agree-tos \
+          --email {{ dokuwiki_email }} \
+          --keep-until-expiring \
+          --expand
+          --quiet \
+          -n \
+          -d {{ dokuwiki_domain }} \
+          --pre-hook "service apache2 stop" --post-hook "service apache2 start" \
+          --webroot-path={{ dokuwiki_dir }}
+
+- name: Setup certbot crontab if needed
+  cron: name="Autorenew certbot"
+        minute="8" hour="0,12"
+        job="/root/certbot-auto renew --quiet --keep-until-expiring --webroot-path={{ dokuwiki_dir }} --pre-hook 'service apache2 stop' --post-hook 'service apache2 start'"
+        cron_file=certbot
+        user="root"

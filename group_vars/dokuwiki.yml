@@ -1,0 +1,16 @@
+ansible_user: ubuntu
+## Dokuwiki Role vars
+dokuwiki_title: "Dokuwiki Federated"
+dokuwiki_domain: "{{ inventory_hostname }}"
+dokuwiki_email: andrew.klaus@cybera.ca
+
+## Shibboleth SP Role vars
+shibsp_conf_dir: /etc/shibboleth
+shibsp_contact_email: invalid@example.com
+shibsp_app_entityid: https://{{ dokuwiki_domain }}
+shibsp_idp_entityid: https://engine.dev.myunified.ca/authentication/idp/metadata
+shibsp_idp_metadata_url: https://engine.dev.myunified.ca/authentication/idp/metadata
+
+## SSL Cert Role Vars for Shibboleth SP
+crtfile: "{{ shibsp_conf_dir }}/ssl.crt"
+keyfile: "{{ shibsp_conf_dir }}/ssl.key"

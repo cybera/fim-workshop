@@ -1,0 +1,9 @@
+- name: Git clone authshibboleth plugin to tmp dir
+  git: repo={{ dokuwiki_plugin_authshibboleth_git }} dest=/tmp/authshibboleth
+
+# As of May 2016, the "copy module" does not support recursive remote_src copying.
+- name: Copy cloned authshibboleth plugin to dokuwiki folder
+  command: cp -r /tmp/authshibboleth/plugin/authshibboleth {{ dokuwiki_dir }}/lib/plugins/authshibboleth
+
+- name: Remove tmp authsaml directory
+  file: dest=/tmp/authshibboleth state=absent

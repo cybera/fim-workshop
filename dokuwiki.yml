@@ -1,0 +1,5 @@
+- hosts: dokuwiki
+  roles:
+    - shibboleth_sp
+    - ssl_cert_gen
+    - dokuwiki-deploy

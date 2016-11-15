@@ -1,0 +1,18 @@
+# Check if current certificate is expired
+- name: Verify cert
+  command: openssl verify {{ crtfile }}
+  register: verify_result
+  ignore_errors: True
+  changed_when: False
+
+- name: If cert expired or forced renew, create new cert from keyfile
+  command: openssl req \
+           -subj '/CN={{ crt_cn }}/O={{ crt_o }}/C={{ crt_c }}' \
+           -{{ digest }} \
+           -new -newkey rsa:{{ key_size }} \
+           -x509 \
+           -days {{ crt_days_valid }} \
+           -nodes -text \
+           -out {{ crtfile }} \
+           -key {{ keyfile }}
+  when: verify_result.rc == 10  or crt_renew_force == true

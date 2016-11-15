@@ -1,0 +1,22 @@
+---
+# tasks file for shibboleth_sp
+- name: Fail if not debian/ubuntu OS
+  fail: msg="Only debian/ubuntu currently supported"
+  when: ansible_pkg_mgr != "apt"
+
+- name: Ensure shibboleth is installed
+  apt: name={{ item }} state=present update_cache=yes cache_valid_time=3600
+  with_items:
+    - apache2
+    - "libapache2-mod-shib2"
+  when: ansible_pkg_mgr == "apt"
+
+- name: Configure templates
+  template: src={{ item }}.j2 dest={{ shibsp_conf_dir }}/{{ item }}
+  with_items:
+    - shibboleth2.xml
+  notify:
+    - restart shibd
+
+- name: Ensure shibboleth enabled and started
+  service: name=shibd state=started enabled=yes

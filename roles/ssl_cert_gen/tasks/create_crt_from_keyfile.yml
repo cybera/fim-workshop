@@ -1,0 +1,10 @@
+- name: Create certificate from keyfile
+  command: openssl req \
+           -subj '/CN={{ crt_cn }}/O={{ crt_o }}/C={{ crt_c }}' \
+           -{{ digest }} \
+           -new -newkey rsa:{{ key_size }} \
+           -x509 \
+           -days {{ crt_days_valid }} \
+           -nodes -text \
+           -out {{ crtfile }} \
+           -key {{ keyfile }}

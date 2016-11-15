@@ -1,0 +1,12 @@
+---
+# defaults file for dokuwiki-deploy
+#
+dokuwiki_url: http://download.dokuwiki.org/src/dokuwiki/dokuwiki-stable.tgz
+dokuwiki_plugin_authshibboleth_git: https://github.com/ivan-novakov/dokuwiki-shibboleth-auth
+
+dokuwiki_email: user@example.com
+dokuwiki_domain: dokuwiki.dev.cybera.ca
+dokuwiki_dir: /var/www/dokuwiki
+dokuwiki_title: Dokuwiki_FID
+
+app_entityid: "https://{{ dokuwiki_domain }}"

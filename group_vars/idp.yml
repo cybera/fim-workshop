@@ -1,5 +1,5 @@
 ansible_user: ubuntu
-ssp_domain: "{{ hostvars['metadata']['dns'] }}"
+ssp_domain: "{{ vars['openstack']['metadata']['dns'] }}"
 
 # Higher php values for CAF / CAF-interfed metadata needed
 ssp_php_conf_mem_limit: 512M

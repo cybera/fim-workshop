@@ -1,7 +1,7 @@
 ansible_user: ubuntu
 ## Dokuwiki Role vars
 dokuwiki_title: "Dokuwiki Federated"
-dokuwiki_domain: "{{ hostvars['metadata']['dns'] }}"
+dokuwiki_domain: "{{ vars['openstack']['metadata']['dns'] }}"
 dokuwiki_email: invalid@example.com
 
 ## Shibboleth SP Role vars

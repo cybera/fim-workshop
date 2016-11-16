@@ -23,7 +23,7 @@ vi group_vars/idp.yml
 ## Run playbooks
 ```
 ansible-playbook setup_idp.yml
-ansible-playbook setup_dokuwiki.yml --become
+ansible-playbook setup_dokuwiki.yml
 ```
 
 ## Test metadata

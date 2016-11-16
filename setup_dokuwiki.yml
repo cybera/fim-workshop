@@ -1,4 +1,5 @@
 - hosts: dokuwiki
+  become: yes
   roles:
     - shibboleth_sp
     - ssl_cert_gen

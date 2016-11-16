@@ -70,6 +70,9 @@ resource "openstack_compute_instance_v2" "idp" {
   key_pair = "${openstack_compute_keypair_v2.workshop.name}"
   security_groups = ["${openstack_compute_secgroup_v2.workshop.name}"]
   user_data = "#cloud-config\nfqdn: idp.example.com\nhostname: idp.example.com"
+  metadata {
+    group = "idp"
+  }
 }
 
 resource "openstack_compute_instance_v2" "dokuwiki" {
@@ -79,6 +82,9 @@ resource "openstack_compute_instance_v2" "dokuwiki" {
   key_pair = "${openstack_compute_keypair_v2.workshop.name}"
   security_groups = ["${openstack_compute_secgroup_v2.workshop.name}"]
   user_data = "#cloud-config\nfqdn: dokuwiki.example.com\nhostname: dokuwiki.example.com"
+  metadata {
+    group = "dokuwiki"
+  }
 }
 
 resource "null_resource" "idp" {

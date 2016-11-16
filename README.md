@@ -14,20 +14,6 @@ source openrc.sh
 terraform apply
 ```
 
-### Get DNS entries for instances
-```
-nova show fim-workshop-idp |grep dns
-nova show fim-workshop-dokuwiki |grep dns
-```
-### Update inventory file
-```
-[idp]
-<idp_dns>.yeg.cybera.ca
-
-[dokuwiki]
-<dokuwiki_dns>.yeg.cybera.ca
-```
-
 ### Update variable file
 ```
 vi group_vars/idp.yml
@@ -36,8 +22,8 @@ vi group_vars/idp.yml
 
 ## Run playbooks
 ```
-ansible-playbook -i inventory setup_idp.yml
-ansible-playbook -i inventory setup_dokuwiki.yml --become
+ansible-playbook setup_idp.yml
+ansible-playbook setup_dokuwiki.yml --become
 ```
 
 ## Test metadata

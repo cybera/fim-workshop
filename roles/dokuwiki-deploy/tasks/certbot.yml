@@ -5,7 +5,7 @@
     mode=0744
 
 - name: Run certbot-auto dependencies
-  command: /root/certbot-auto --os-packages-only -n -q
+  command: /root/certbot-auto -nq plugins
   register: cb_reg
   changed_when: cb_reg.rc != 0
 

@@ -129,8 +129,8 @@
 
 - meta: flush_handlers
 
-- name: Force SSP update
-  get_url: url='https://{{ ssp_domain }}/simplesaml/module.php/cron/cron.php?key=secret&tag=hourly' dest="/dev/null" force=yes
+- name: Force SSP update (curl since get_url has ipv6-only bug)
+  command: curl https://{{ ssp_domain }}/simplesaml/module.php/cron/cron.php?key=secret&tag=hourly
   ignore_errors: yes
   become_user: "{{ ssp_www_user }}"
   become: yes

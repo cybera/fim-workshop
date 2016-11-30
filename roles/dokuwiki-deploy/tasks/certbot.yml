@@ -10,7 +10,7 @@
   changed_when: cb_reg.rc != 0
 
 - name: Run certbot-auto for virtual environment (needed to patch python libs)
-  command: /root/certbot-auto certonly --standalone --agree-tos --dry-run -n
+  command: /root/certbot-auto -nq plugins
   ignore_errors: yes
 
 - name: Patch certbot with ipv6 patch
